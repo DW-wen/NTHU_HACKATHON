@@ -74,16 +74,19 @@ class GameScene(Scene):
             
             camera = self.game_manager.player.camera
             '''
-            camera = PositionCamera(16 * GameSettings.TILE_SIZE, 30 * GameSettings.TILE_SIZE)
-            self.game_manager.current_map.draw(screen, camera)
-            self.game_manager.player.draw(screen, camera)
+            camera = self.game_manager.player.camera
         else:
             camera = PositionCamera(0, 0)
-            self.game_manager.current_map.draw(screen, camera)
+            
+            
         for enemy in self.game_manager.current_enemy_trainers:
             enemy.draw(screen, camera)
 
-        self.game_manager.bag.draw(screen)
+        self.game_manager.current_map.draw(screen, camera)
+        
+        
+        if self.game_manager.player:
+             self.game_manager.player.draw(screen, camera)
         
         if self.online_manager and self.game_manager.player:
             list_online = self.online_manager.get_list_players()

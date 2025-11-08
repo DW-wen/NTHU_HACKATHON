@@ -21,6 +21,7 @@ class Player(Entity):
         [TODO HACKATHON 2]
         Calculate the distance change, and then normalize the distance
         
+        
         [TODO HACKATHON 4]
         Check if there is collision, if so try to make the movement smooth
         Hint #1 : use entity.py _snap_to_grid function or create a similar function
@@ -42,6 +43,22 @@ class Player(Entity):
         
         self.position = ...
         '''
+        if input_manager.key_down(pg.K_LEFT) or input_manager.key_down(pg.K_a):
+            dis.x -= 1
+        if input_manager.key_down(pg.K_RIGHT) or input_manager.key_down(pg.K_d):
+            dis.x += 1
+        if input_manager.key_down(pg.K_UP) or input_manager.key_down(pg.K_w):
+            dis.y -= 1
+        if input_manager.key_down(pg.K_DOWN) or input_manager.key_down(pg.K_s):
+            dis.y += 1
+        if dis.x != 0 or dis.y != 0:
+            length = dis.distance_to(Position(0, 0))
+            dis.x = dis.x / length * self.speed
+            dis.y = dis.y / length * self.speed
+        
+        self.position.x += dis.x * dt
+        self.position.y += dis.y * dt
+        
         
         # Check teleportation
         tp = self.game_manager.current_map.check_teleport(self.position)
