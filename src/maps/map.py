@@ -46,6 +46,10 @@ class Map:
         Return True if collide if rect param collide with self._collision_map
         Hint: use API colliderect and iterate each rectangle to check
         '''
+        for collision_rec in self._collision_map:
+            if rect.colliderect(collision_rec):
+                return True
+       
         return False
         
     def check_teleport(self, pos: Position) -> Teleport | None:
@@ -85,6 +89,15 @@ class Map:
                         Append the collision rectangle to the rects[] array
                         Remember scale the rectangle with the TILE_SIZE from settings
                         '''
+                        rects.append(
+                            pg.Rect(
+                                x * GameSettings.TILE_SIZE,
+                                y * GameSettings.TILE_SIZE,
+                                GameSettings.TILE_SIZE,
+                                GameSettings.TILE_SIZE
+                                
+                            )
+                        )
                         pass
         return rects
 

@@ -51,14 +51,43 @@ class Player(Entity):
             dis.y -= 1
         if input_manager.key_down(pg.K_DOWN) or input_manager.key_down(pg.K_s):
             dis.y += 1
+        
+        # Calculate distance
         if dis.x != 0 or dis.y != 0:
             length = dis.distance_to(Position(0, 0))
             dis.x = dis.x / length * self.speed
             dis.y = dis.y / length * self.speed
         
-        self.position.x += dis.x * dt
-        self.position.y += dis.y * dt
         
+        dx = dis.x * dt
+        dy = dis.y * dt
+        
+        player_rect = self.animation.rect.copy()
+        
+        # Move X
+        
+        player_rect.x = self.position.x + dx
+        player_rect.y = self.position.y
+        # if not self.game_manager.check_collision(player_rect):
+        #     self.position.x += dx
+        if self.game_manager.check_collision(player_rect):
+            self.position.x = self._snap_to_grid(self.position.x)
+        else:
+            self.position.x += dx
+        
+         # Move Y
+        
+        player_rect.x = self.position.x
+        player_rect.y = self.position.y + dy
+        # if not self.game_manager.check_collision(player_rect):
+        #     self.position.y += dy
+        if self.game_manager.check_collision(player_rect):
+            self.position.y = self._snap_to_grid(self.position.y)
+        else:
+            self.position.y += dy
+        
+        # update the rect position
+        self.animation.update_pos(self.position) 
         
         # Check teleportation
         tp = self.game_manager.current_map.check_teleport(self.position)
