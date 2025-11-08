@@ -26,7 +26,14 @@ surface = pg.Surface((pixel_w, pixel_h), pg.SRCALPHA)
 for layer in tmxdata.visible_layers:
     if isinstance(layer, TiledTileLayer):
         for x, y, gid in layer:
-            pass
+            if gid == 0:
+                continue
+            image = tmxdata.get_tile_image_by_gid(gid)
+            if image is None:
+                continue
+            if image.get_size() != (tile_w, tile_h):
+                image = pg.transform.scale(image, (tile_w, tile_h))
+            surface.blit(image, (x * tile_w, y * tile_h))
 
 running = True
 while running:
