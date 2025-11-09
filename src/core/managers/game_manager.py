@@ -40,6 +40,7 @@ class GameManager:
         # Check If you should change scene
         self.should_change_scene = False
         self.next_map = ""
+        self.is_teleporting = False
         
     @property
     def current_map(self) -> Map:
@@ -68,6 +69,7 @@ class GameManager:
             self.should_change_scene = False
             if self.player:
                 self.player.position = self.maps[self.current_map_key].spawn
+            self.is_teleporting = False
             
     def check_collision(self, rect: pg.Rect) -> bool:
         if self.maps[self.current_map_key].check_collision(rect):

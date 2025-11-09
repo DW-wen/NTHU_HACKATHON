@@ -1,5 +1,7 @@
 from __future__ import annotations
 import pygame as pg
+
+from src.utils.definition import Direction
 from .entity import Entity
 from src.core.services import input_manager
 from src.utils import Position, PositionCamera, GameSettings, Logger
@@ -45,6 +47,7 @@ class Player(Entity):
         '''
         if input_manager.key_down(pg.K_LEFT) or input_manager.key_down(pg.K_a):
             dis.x -= 1
+            
         if input_manager.key_down(pg.K_RIGHT) or input_manager.key_down(pg.K_d):
             dis.x += 1
         if input_manager.key_down(pg.K_UP) or input_manager.key_down(pg.K_w):
@@ -57,6 +60,13 @@ class Player(Entity):
             length = dis.distance_to(Position(0, 0))
             dis.x = dis.x / length * self.speed
             dis.y = dis.y / length * self.speed
+            
+            if abs(dis.x) > abs(dis.y):
+                self.direction = Direction.RIGHT if dis.x > 0 else Direction.LEFT
+            else:
+                self.direction = Direction.DOWN if dis.y > 0 else Direction.UP
+            
+            self.animation.switch(self.direction.name.lower())
         
         
         dx = dis.x * dt
@@ -66,14 +76,16 @@ class Player(Entity):
         
         # Move X
         
+        player_new_position = Position(self.position.x , self.position.y)
+        
         player_rect.x = self.position.x + dx
         player_rect.y = self.position.y
         # if not self.game_manager.check_collision(player_rect):
         #     self.position.x += dx
         if self.game_manager.check_collision(player_rect):
-            self.position.x = self._snap_to_grid(self.position.x)
+            self.position = Position(self._snap_to_grid(self.position.x), self.position.y)
         else:
-            self.position.x += dx
+            self.position = Position(self.position.x + dx, self.position.y)
         
          # Move Y
         
@@ -82,9 +94,9 @@ class Player(Entity):
         # if not self.game_manager.check_collision(player_rect):
         #     self.position.y += dy
         if self.game_manager.check_collision(player_rect):
-            self.position.y = self._snap_to_grid(self.position.y)
+            self.position =  Position(self.position.x, self._snap_to_grid(self.position.y))
         else:
-            self.position.y += dy
+            self.position = Position(self.position.x, self.position.y + dy)
         
         # update the rect position
         self.animation.update_pos(self.position) 
@@ -92,6 +104,7 @@ class Player(Entity):
         # Check teleportation
         tp = self.game_manager.current_map.check_teleport(self.position)
         if tp:
+            self.is_teleporting = True
             dest = tp.destination
             self.game_manager.switch_map(dest)
                 

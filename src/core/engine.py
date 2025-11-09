@@ -1,5 +1,6 @@
 import pygame as pg
 
+from src.scenes.setting_scene import SettingScene
 from src.utils import GameSettings, Logger
 from .services import scene_manager, input_manager
 
@@ -25,6 +26,8 @@ class Engine:
 
         scene_manager.register_scene("menu", MenuScene())
         scene_manager.register_scene("game", GameScene())
+        scene_manager.register_scene("setting", SettingScene())
+        
         '''
         [TODO HACKATHON 5]
         Register the setting scene here
