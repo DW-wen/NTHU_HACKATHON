@@ -8,6 +8,7 @@ class SceneManager:
     _scenes: dict[str, Scene]
     _current_scene: Scene | None = None
     _next_scene: str | None = None
+    _previous_scene: Scene | None = None
     
     def __init__(self):
         Logger.info("Initializing SceneManager")
@@ -31,10 +32,22 @@ class SceneManager:
         # Update current scene
         if self._current_scene:
             self._current_scene.update(dt)
+    
+    # 改音量時要用的
+    def handle_event(self, event: pg.event.EventType) -> None:
+        """把事件傳給當前 scene"""
+        if self._current_scene and hasattr(self._current_scene, "handle_event"):
+            self._current_scene.handle_event(event)
             
     def draw(self, screen: pg.Surface) -> None:
-        if self._current_scene:
+    # 若是在 Setting Scene => 先畫上一個場景，再畫 SettingScene
+    
+        if type(self._current_scene).__name__ == "SettingScene" and self._previous_scene:
+            self._previous_scene.draw(screen)
             self._current_scene.draw(screen)
+        else:
+            if self._current_scene:
+                self._current_scene.draw(screen)
             
     def _perform_scene_switch(self) -> None:
         if self._next_scene is None:
@@ -43,6 +56,8 @@ class SceneManager:
         # Exit current scene
         if self._current_scene:
             self._current_scene.exit()
+        
+        self._previous_scene = self._current_scene
         
         self._current_scene = self._scenes[self._next_scene]
         
@@ -53,4 +68,12 @@ class SceneManager:
             
         # Clear the transition request
         self._next_scene = None
+    
+    def close_overlay(self):
+        """關閉 SettingScene 浮層，回到 previous_scene"""
+        if type(self._current_scene).__name__ == "SettingScene" and self._previous_scene:
+            Logger.info("Closing overlay SettingScene")
+            self._current_scene.exit()
+            self._current_scene = self._previous_scene
+            self._previous_scene = None
         

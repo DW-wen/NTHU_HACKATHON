@@ -5,8 +5,9 @@ import time
 from src.scenes.scene import Scene
 from src.core import GameManager, OnlineManager
 from src.utils import Logger, PositionCamera, GameSettings, Position
-from src.core.services import sound_manager
+from src.core.services import sound_manager, scene_manager
 from src.sprites import Sprite
+from src.interface.components import Button
 from typing import override
 
 class GameScene(Scene):
@@ -30,6 +31,18 @@ class GameScene(Scene):
             self.online_manager = None
         self.sprite_online = Sprite("ingame_ui/options1.png", (GameSettings.TILE_SIZE, GameSettings.TILE_SIZE))
         
+        # Button 
+        px, py = GameSettings.SCREEN_WIDTH * 7 // 8, GameSettings.SCREEN_HEIGHT  // 7
+        self.settiung_button = Button(
+            "UI/button_setting.png", "UI/button_setting_hover.png",
+            px + 70, py - 50, 50, 50,
+            lambda: scene_manager.change_scene("setting")
+        )
+        self.backpack_button = Button(
+            "UI/button_backpack.png", "UI/button_backpack_hover.png",
+            px , py - 50, 50, 50,
+            lambda: scene_manager.change_scene("game")
+        )
         
     @override
     def enter(self) -> None:
@@ -63,8 +76,12 @@ class GameScene(Scene):
                 self.game_manager.current_map.path_name
             )
         
+        self.settiung_button.update(dt)
+        self.backpack_button.update(dt)
+        
+        
     @override
-    def draw(self, screen: pg.Surface):        
+    def draw(self, screen: pg.Surface):          
         if self.game_manager.player:
             '''
             [TODO HACKATHON 3]
@@ -77,7 +94,8 @@ class GameScene(Scene):
             camera = self.game_manager.player.camera
         else:
             camera = PositionCamera(0, 0)
-            
+        
+       
             
         for enemy in self.game_manager.current_enemy_trainers:
             enemy.draw(screen, camera)
@@ -96,3 +114,8 @@ class GameScene(Scene):
                     pos = cam.transform_position_as_position(Position(player["x"], player["y"]))
                     self.sprite_online.update_pos(pos)
                     self.sprite_online.draw(screen)
+                    
+         # Button
+        self.settiung_button.draw(screen)
+        
+        self.backpack_button.draw(screen)
