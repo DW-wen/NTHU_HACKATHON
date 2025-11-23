@@ -23,6 +23,16 @@ class SceneManager:
             self._next_scene = scene_name
         else:
             raise ValueError(f"Scene '{scene_name}' not found")
+        
+    @property
+    def next_scene_name(self) -> str | None:
+        """提供外部存取 _next_scene 的名稱"""
+        return self._next_scene
+    
+    @property
+    def current_scene(self) -> Scene | None:
+        """提供外部存取 _current_scene 的 getter"""
+        return self._current_scene
             
     def update(self, dt: float) -> None:
         # Handle scene transition
@@ -42,7 +52,7 @@ class SceneManager:
     def draw(self, screen: pg.Surface) -> None:
     # 若是在 Setting Scene => 先畫上一個場景，再畫 SettingScene
     
-        if type(self._current_scene).__name__ == "SettingScene" and self._previous_scene:
+        if (type(self._current_scene).__name__ in ("SettingScene", "BackpackScene")) and self._previous_scene:
             self._previous_scene.draw(screen)
             self._current_scene.draw(screen)
         else:
@@ -71,7 +81,7 @@ class SceneManager:
     
     def close_overlay(self):
         """關閉 SettingScene 浮層，回到 previous_scene"""
-        if type(self._current_scene).__name__ == "SettingScene" and self._previous_scene:
+        if (type(self._current_scene).__name__ in ("SettingScene", "BackpackScene")) and self._previous_scene:
             Logger.info("Closing overlay SettingScene")
             self._current_scene.exit()
             self._current_scene = self._previous_scene

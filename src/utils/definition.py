@@ -76,8 +76,27 @@ class Monster(TypedDict):
     max_hp: int
     level: int
     sprite_path: str
+    
+    def to_dict(self) -> dict[str, object]:
+        """將 Monster 實例轉換為可序列化的字典"""
+        return {
+            "name": self.name,
+            "hp": self.hp,
+            "max_hp": self.max_hp,
+            "level": self.level,
+            "sprite_path": self.sprite_path,
+            # 確保所有需要儲存的狀態都在這裡
+        }
 
 class Item(TypedDict):
     name: str
     count: int
     sprite_path: str
+    
+    def to_dict(self) -> dict[str, object]:
+        """將 Item 實例轉換為可序列化的字典"""
+        return {
+            "name": self.name,
+            "count": self.count,
+            "sprite_path": self.sprite_path,
+        }

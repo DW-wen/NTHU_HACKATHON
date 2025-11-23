@@ -12,39 +12,19 @@ from typing import override
 class Player(Entity):
     speed: float = 4.0 * GameSettings.TILE_SIZE
     game_manager: GameManager
+    
+    is_moving: bool = False
 
     def __init__(self, x: float, y: float, game_manager: GameManager) -> None:
         super().__init__(x, y, game_manager)
 
+    def is_standing_still(self) -> bool:
+        """檢查玩家是否處於靜止狀態 (即沒有輸入指令或移動速度為零)。"""
+        return not self.is_moving
+    
     @override
     def update(self, dt: float) -> None:
         dis = Position(0, 0)
-        '''
-        [TODO HACKATHON 2]
-        Calculate the distance change, and then normalize the distance
-        
-        
-        [TODO HACKATHON 4]
-        Check if there is collision, if so try to make the movement smooth
-        Hint #1 : use entity.py _snap_to_grid function or create a similar function
-        Hint #2 : Beware of glitchy teleportation, you must do
-                    1. Update X
-                    2. If collide, snap to grid
-                    3. Update Y
-                    4. If collide, snap to grid
-                  instead of update both x, y, then snap to grid
-        
-        if input_manager.key_down(pg.K_LEFT) or input_manager.key_down(pg.K_a):
-            dis.x -= ...
-        if input_manager.key_down(pg.K_RIGHT) or input_manager.key_down(pg.K_d):
-            dis.x += ...
-        if input_manager.key_down(pg.K_UP) or input_manager.key_down(pg.K_w):
-            dis.y -= ...
-        if input_manager.key_down(pg.K_DOWN) or input_manager.key_down(pg.K_s):
-            dis.y += ...
-        
-        self.position = ...
-        '''
         if input_manager.key_down(pg.K_LEFT) or input_manager.key_down(pg.K_a):
             dis.x -= 1
             
