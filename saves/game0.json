@@ -7,6 +7,16 @@
           "x": 24,
           "y": 23,
           "destination": "gym.tmx"
+        },
+        {
+          "x": 54,
+          "y": 13,
+          "destination": "new.tmx"
+        },
+        {
+          "x": 54,
+          "y": 14,
+          "destination": "new.tmx"
         }
       ],
       "player": {
@@ -23,9 +33,9 @@
         },
         {
           "x": 54.0,
-          "y": 16.0,
+          "y": 15.0,
           "classification": "stationary",
-          "facing": "UP",
+          "facing": "DOWN",
           "max_tiles": 2
         },
         {
@@ -61,12 +71,42 @@
         "y": 12
       },
       "enemy_trainers": []
+    },
+    {
+      "path": "new.tmx",
+      "teleport": [
+        {
+          "x": 8,
+          "y": 9,
+          "destination": "map.tmx"
+        },
+        {
+          "x": 9,
+          "y": 9,
+          "destination": "map.tmx"
+        },
+        {
+          "x": 10,
+          "y": 9,
+          "destination": "map.tmx"
+        },
+        {
+          "x": 11,
+          "y": 9,
+          "destination": "map.tmx"
+        }
+      ],
+      "player": {
+        "x": 9,
+        "y": 5
+      },
+      "enemy_trainers": []
     }
   ],
   "current_map": "map.tmx",
   "player": {
-    "x": 32.492907504163334,
-    "y": 30.0,
+    "x": 23.936728132322116,
+    "y": 24.488841994599607,
     "current_map_key": "map.tmx"
   },
   "bag": {
