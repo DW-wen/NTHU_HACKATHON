@@ -27,6 +27,14 @@ class Bag:
     @classmethod
     def from_dict(cls, data: dict[str, object]) -> "Bag":
         monsters = data.get("monsters") or []
+        # Ensure monster levels are clamped to supported range
+        from src.utils.definition import clamp_level
+        for m in monsters:
+            if isinstance(m, dict) and "level" in m:
+                try:
+                    m["level"] = clamp_level(m["level"])
+                except Exception:
+                    m["level"] = 1
         items = data.get("items") or []
         bag = cls(monsters, items)
         return bag
@@ -39,9 +47,6 @@ class Bag:
         return None
 
     def change_item_count(self, name: str, delta: int, sprite_path: str | None = None) -> int:
-        """Change the item count by delta. If item does not exist and delta>0, it will be created.
-        If the resulting count <= 0 the item will be removed. Returns resulting count (0 if removed).
-        """
         item = self.get_item_by_name(name)
         if item is None:
             if delta <= 0:
@@ -51,17 +56,56 @@ class Bag:
                 sprite_path = ""
             item = {"name": name, "sprite_path": sprite_path, "count": delta}
             self._items_data.append(item)
-            return item["count"]
+            new_count = item["count"]
+            # notify scenes that bag changed
+            try:
+                from src.core.services import scene_manager
+                for sc in (scene_manager.current_scene, getattr(scene_manager, "_previous_scene", None)):
+                    if sc is None:
+                        continue
+                    if hasattr(sc, "_initialize_displays"):
+                        sc._initialize_displays()
+                    if hasattr(sc, "backpack_items"):
+                        for b in sc.backpack_items:
+                            bag_item = self.get_item_by_name(b.name)
+                            qty = bag_item.get("count", 0) if bag_item is not None else 0
+                            b.set_quantity(qty)
+                    if hasattr(sc, "item_displays"):
+                        for idisp in sc.item_displays:
+                            bag_item = self.get_item_by_name(idisp.name)
+                            qty = bag_item.get("count", 0) if bag_item is not None else 0
+                            idisp.set_quantity(qty)
+            except Exception:
+                pass
+            return new_count
 
         # modify existing
         new_count = item.get("count", 0) + delta
+        # Keep item in bag even if count reaches 0 (per requirement)
         if new_count <= 0:
-            # remove
-            try:
-                self._items_data.remove(item)
-            except ValueError:
-                pass
-            return 0
+            item["count"] = 0
+        else:
+            item["count"] = new_count
 
-        item["count"] = new_count
-        return new_count
+        # notify scenes that bag changed
+        try:
+            from src.core.services import scene_manager
+            for sc in (scene_manager.current_scene, getattr(scene_manager, "_previous_scene", None)):
+                if sc is None:
+                    continue
+                if hasattr(sc, "_initialize_displays"):
+                    sc._initialize_displays()
+                if hasattr(sc, "backpack_items"):
+                    for b in sc.backpack_items:
+                        bag_item = self.get_item_by_name(b.name)
+                        qty = bag_item.get("count", 0) if bag_item is not None else 0
+                        b.set_quantity(qty)
+                if hasattr(sc, "item_displays"):
+                    for idisp in sc.item_displays:
+                        bag_item = self.get_item_by_name(idisp.name)
+                        qty = bag_item.get("count", 0) if bag_item is not None else 0
+                        idisp.set_quantity(qty)
+        except Exception:
+            pass
+
+        return item["count"]

@@ -3,8 +3,8 @@ import pygame as pg
 from saves.load_data import load_save
 from src.core.managers.game_manager import GameManager
 from src.scenes.backpack_scene import BackpackScene
-from src.scenes.battle_scene import BattleScene
-from src.scenes.catch_scene import CatchScene
+from src.scenes.battle_scene.battle_scene import BattleScene
+from src.scenes.battle_scene.catch_scene import CatchScene
 from src.scenes.setting_scene import SettingScene
 from src.scenes.shop_scene.shop_scene import ShopScene
 from src.utils import GameSettings, Logger

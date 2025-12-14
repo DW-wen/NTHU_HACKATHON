@@ -196,6 +196,10 @@ class PokemonDisplay:
         self.hp_max = hp_max
         self.level = level
 
+        # enforce allowed level range
+        from src.utils.definition import clamp_level
+        self.level = clamp_level(self.level)
+
         self.update_text()
 
     def update_text(self):
@@ -219,7 +223,8 @@ class PokemonDisplay:
 
     def set_level(self, level: int):
         """更新等級"""
-        self.level = level
+        from src.utils.definition import clamp_level
+        self.level = clamp_level(level)
         self.update_text()
 
     def draw(self, screen: pg.Surface):

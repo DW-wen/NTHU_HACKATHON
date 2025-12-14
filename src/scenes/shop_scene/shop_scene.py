@@ -61,26 +61,26 @@ class ShopScene(Scene):
         # --- ⚡ 商品清單定義 ---
         item_definitions = [
             {
-                "name": "Attack Potion",
+                "name": "Attack",
                 "bag_name": "Attack",
                 "image_path": "assets/images/ingame_ui/options5.png",
                 "base_price": 10,
             },
             {
-                "name": "Health Potion L", 
-                "bag_name": "Heal",
+                "name": "Defense", 
+                "bag_name": "Defense",
                 "image_path": "assets/images/ingame_ui/options6.png", 
                 "base_price": 20,
             },
             {
-                "name": "Mana Potion",
-                "bag_name": "Mana",
+                "name": "Heal",
+                "bag_name": "Heal",
                 "image_path": "assets/images/ingame_ui/potion.png",
                 "base_price": 15,
             },
             {
-                "name": "Speed Scroll", 
-                "bag_name": "Speed Scroll",
+                "name": "Pokeball", 
+                "bag_name": "Pokeball",
                 "image_path": "assets/images/ingame_ui/ball.png", 
                 "base_price": 25,
             },
@@ -136,6 +136,7 @@ class ShopScene(Scene):
         """Called when a ShopItem changes bag contents (buy/sell).
         Sync backpack displays to current Bag state.
         """
+        self.refresh_backpack_display()
         bag_item = self.game_manager.bag.get_item_by_name(name)
 
         # find existing display
@@ -151,10 +152,38 @@ class ShopScene(Scene):
             qty = bag_item.get("count", 0) if bag_item is not None else 0
             existing.set_quantity(qty)
         # If there's no existing display for this item, do nothing (do not add new entries)
+        
+    def refresh_backpack_display(self):
+        """Refresh the entire backpack item display list from the Bag data.
+        This is useful when entering the scene to ensure the display is up-to-date.
+        """
+    
+        # 清空舊列表
+        self.backpack_items = []
+        
+        # 獲取最新的背包物品清單
+        backpack_item_definitions = self.game_manager.bag._items_data
+        
+        for i, item in enumerate(backpack_item_definitions):
+            # 確保該物品有數量且不是怪物（如果需要排除）
+           
+            
+            current_y = self.LIST_START_Y + i * self.LIST_OFFSET_Y
+            
+            # 注意: 如果您的 Bag 邏輯已確保 item['sprite_path'] 存在，這段代碼就是安全的
+            item_display = BackpackItem(
+                name=item["name"],
+                image_path=f"assets/images/{item['sprite_path']}", 
+                x=self.BACKPACK_START_X,
+                y=current_y,
+                quantity=item["count"]
+            )
+            self.backpack_items.append(item_display)
 
 
     @override
     def enter(self) -> None:
+        self.refresh_backpack_display()
         pass
 
     @override
