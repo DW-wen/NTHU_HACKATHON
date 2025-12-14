@@ -52,9 +52,12 @@ class Animation(Sprite):
     def update(self, dt: float):
          self.accumulator = (self.accumulator + dt) % self.loop
         
-    def draw(self, screen: pg.Surface, camera: Optional[PositionCamera] = None):
+    def draw(self, screen: pg.Surface, camera: Optional[PositionCamera] = None, static: bool = False):
         frames = self.animations[self.cur_row]
-        idx = int((self.accumulator / self.loop) * self.n_keyframes)
+        if static:
+            idx = 0
+        else:
+            idx = int((self.accumulator / self.loop) * self.n_keyframes)
         if camera:
             screen.blit(frames[idx], camera.transform_rect(self.rect))
         else:

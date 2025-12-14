@@ -35,7 +35,11 @@ class GameScene(Scene):
             self.online_manager = OnlineManager()
         else:
             self.online_manager = None
-        self.sprite_online = Sprite("ingame_ui/options1.png", (GameSettings.TILE_SIZE, GameSettings.TILE_SIZE))
+        from src.sprites import Animation
+        self.sprite_online = Animation(
+            "character/ow1.png", ["down", "left", "right", "up"], 4,
+            (GameSettings.TILE_SIZE, GameSettings.TILE_SIZE)
+        )
         
         # Button 
         px, py = GameSettings.SCREEN_WIDTH * 7 // 8, GameSettings.SCREEN_HEIGHT  // 7
@@ -189,14 +193,18 @@ class GameScene(Scene):
             _ = self.online_manager.update(
                 self.game_manager.player.position.x, 
                 self.game_manager.player.position.y,
-                self.game_manager.current_map.path_name
+                self.game_manager.current_map.path_name,
+                direction=self.game_manager.player.direction.name.lower(),
+                moving=self.game_manager.player.is_moving,
             )
         
         self.settiung_button.update(dt)
         self.backpack_button.update(dt)
         self.minimap.update(dt)
-        
-        
+        # advance online sprite animation time
+        if self.sprite_online:
+            self.sprite_online.update(dt)
+
     @override
     def draw(self, screen: pg.Surface):          
         if self.game_manager.player:
@@ -225,8 +233,13 @@ class GameScene(Scene):
                 if player["map"] == self.game_manager.current_map.path_name:
                     cam = self.game_manager.player.camera
                     pos = cam.transform_position_as_position(Position(player["x"], player["y"]))
+                    # Direction may be 'down','left','right','up'
+                    dir_name = str(player.get("dir", "down")).lower()
+                    moving = bool(player.get("moving", False))
+                    self.sprite_online.switch(dir_name)
                     self.sprite_online.update_pos(pos)
-                    self.sprite_online.draw(screen)
+                    # If player not moving, draw static first frame
+                    self.sprite_online.draw(screen, static=(not moving))
                     
          # Button
         self.settiung_button.draw(screen)

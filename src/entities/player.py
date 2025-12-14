@@ -78,7 +78,10 @@ class Player(Entity):
                 self.direction = Direction.DOWN if dis.y > 0 else Direction.UP
             
             self.animation.switch(self.direction.name.lower())
-        
+            self.is_moving = True
+        else:
+            self.is_moving = False
+      
         
         dx = dis.x * dt
         dy = dis.y * dt
@@ -130,7 +133,10 @@ class Player(Entity):
 
     @override
     def draw(self, screen: pg.Surface, camera: PositionCamera) -> None:
-        super().draw(screen, camera)
+        # Draw player animation; if not moving, draw static frame
+        self.animation.draw(screen, camera, static=(not self.is_moving))
+        if GameSettings.DRAW_HITBOXES:
+            self.animation.draw_hitbox(screen, camera)
         
     @override
     def to_dict(self) -> dict[str, object]:

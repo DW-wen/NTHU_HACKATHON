@@ -13,6 +13,8 @@ class Player:
     x: float
     y: float
     map: str
+    direction: str
+    moving: bool
     last_update: float
 
     def update(self, x: float, y: float, map: str) -> None:
@@ -21,6 +23,12 @@ class Player:
         self.x = x
         self.y = y
         self.map = map
+    
+    def update_direction(self, direction: str) -> None:
+        self.direction = str(direction)
+
+    def update_moving(self, moving: bool) -> None:
+        self.moving = bool(moving)
 
     def is_inactive(self) -> bool:
         now = time.monotonic()
@@ -72,16 +80,21 @@ class PlayerHandler:
         with self._lock:
             pid = self._next_id
             self._next_id += 1
-            self.players[pid] = Player(pid, 0.0, 0.0, "", time.monotonic())
+            # Default direction is down and not moving
+            self.players[pid] = Player(pid, 0.0, 0.0, "", "down", False, time.monotonic())
             return pid
 
-    def update(self, pid: int, x: float, y: float, map_name: str) -> bool:
+    def update(self, pid: int, x: float, y: float, map_name: str, direction: str | None = None, moving: bool | None = None) -> bool:
         with self._lock:
             p = self.players.get(pid)
             if not p:
                 return False
             else:
                 p.update(float(x), float(y), str(map_name))
+                if direction is not None:
+                    p.update_direction(str(direction))
+                if moving is not None:
+                    p.update_moving(bool(moving))
                 return True
 
     def list_players(self) -> dict:
@@ -92,6 +105,12 @@ class PlayerHandler:
                     "id": p.id,
                     "x": p.x,
                     "y": p.y,
-                    "map": p.map
+                    "map": p.map,
+                    "dir": p.direction,
+                    "moving": p.moving
                 }
             return player_list
+
+    def unregister(self, pid: int) -> None:
+        with self._lock:
+            _ = self.players.pop(pid, None)
