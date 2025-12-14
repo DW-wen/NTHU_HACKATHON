@@ -8,6 +8,7 @@ from src.utils import Logger, PositionCamera, GameSettings, Position
 from src.core.services import sound_manager, scene_manager
 from src.sprites import Sprite
 from src.interface.components import Button
+from src.interface.components.minimap import Minimap
 from typing import override
 
 class GameScene(Scene):
@@ -48,6 +49,9 @@ class GameScene(Scene):
             px , py - 50, 50, 50,
             lambda: scene_manager.change_scene("backpack")
         )
+
+        # Minimap (top-left)
+        self.minimap = Minimap(self.game_manager, width=200, height=150, pos=(8, 8))
     
     def _get_bush_layer_data(self):
         bush_layer = self.game_manager.current_map.get_layer_by_name("PokemonBush")
@@ -158,7 +162,8 @@ class GameScene(Scene):
         
         from src.core.services import input_manager
         is_space_pressed = input_manager.key_down(pg.K_SPACE)
-
+        # Toggle minimap with M
+        
         # 💥 NEW: 如果計時器還在運行，且 SPACE 被按下，我們需要在這裡阻止 SPACE 鍵被 check_bush_encounter 處理
         # 由於 check_bush_encounter 內置了對 SPACE 鍵的檢查，我們需要在呼叫它之前檢查延遲狀態。
         
@@ -189,6 +194,7 @@ class GameScene(Scene):
         
         self.settiung_button.update(dt)
         self.backpack_button.update(dt)
+        self.minimap.update(dt)
         
         
     @override
@@ -226,3 +232,5 @@ class GameScene(Scene):
         self.settiung_button.draw(screen)
         
         self.backpack_button.draw(screen)
+        # draw minimap on top-left
+        self.minimap.draw(screen)
