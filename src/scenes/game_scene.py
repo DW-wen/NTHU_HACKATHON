@@ -56,6 +56,12 @@ class GameScene(Scene):
 
         # Minimap (top-left)
         self.minimap = Minimap(self.game_manager, width=200, height=150, pos=(8, 8))
+        # Chat overlay
+        from src.interface.components.chat_overlay import ChatOverlay
+        if self.online_manager:
+            self.chat_overlay = ChatOverlay(self.online_manager)
+        else:
+            self.chat_overlay = None
     
     def _get_bush_layer_data(self):
         bush_layer = self.game_manager.current_map.get_layer_by_name("PokemonBush")
@@ -204,6 +210,13 @@ class GameScene(Scene):
         # advance online sprite animation time
         if self.sprite_online:
             self.sprite_online.update(dt)
+        if self.chat_overlay:
+            self.chat_overlay.update(dt)
+
+    def handle_event(self, event: pg.event.EventType) -> None:
+        # Route events to chat overlay when present
+        if hasattr(self, 'chat_overlay') and self.chat_overlay:
+            self.chat_overlay.handle_event(event)
 
     @override
     def draw(self, screen: pg.Surface):          
@@ -247,3 +260,6 @@ class GameScene(Scene):
         self.backpack_button.draw(screen)
         # draw minimap on top-left
         self.minimap.draw(screen)
+        # draw chat overlay on top
+        if self.chat_overlay:
+            self.chat_overlay.draw(screen)

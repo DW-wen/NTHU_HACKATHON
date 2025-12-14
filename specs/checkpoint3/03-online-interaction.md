@@ -9,7 +9,7 @@ Score: 3 points
 
 Example for rendering other players
 
-- [x] (2 point) Currently Online can render other players' direction and moving state. (Implemented: direction + moving sync, online players use character animation)
+- [] (2 point) Currently Online can render other players' direction and moving state. (Implemented: direction + moving sync, online players use character animation)
 
 (HINT 1: Try to figure out how to change animation direction first for your player. Then figure out how to render animation for online players; maybe you can check how online manager handles it?)
 
@@ -17,8 +17,7 @@ Example for rendering other players
 
 ![Alt Text](./Checkpoint3_gif/chat.gif)
 
-- [ ] (1 point) Chat Mechanism. Implement a chat system for the online version.
-(HINT: We've added a chat_overlay.py and some additional comments in game_scene.py)
+- [x] (1 point) Chat Mechanism implemented (chat_overlay.py + integration with OnlineManager).
 
 **Guide to Run Online:**
 
