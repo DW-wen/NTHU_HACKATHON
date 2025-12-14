@@ -2,7 +2,8 @@
 
 Final Project Template for National Tsing Hua University Introduction to Programming (I) 114 Fall
 
-This Project is inspired by classic pokemon game
+## Author
+**114062107 文柏鈞**
 
 ## Setup Project
 1. (Recommended) Install Python 3.12.x (We use 3.12.8) from the official Python website and create virtual environment
@@ -33,23 +34,10 @@ This Project is inspired by classic pokemon game
     
 2. Run your client
     ```bash
-    python main.py
+    python main.py --online
     ```
     
 You can run multiple client on a single computer. 
 
 Although it's not required, you may also share the server with your friends by configuring the ip address instead of using localhost. 
     
-## Assets Used
-
-1. MyPixelWorld Special Packs
-  
-    Url: https://scarloxy.itch.io/mpwsp01
-
-2. User Interface Essential Packs
-
-    Url: https://crusenho.itch.io/complete-ui-essential-pack
-    
-3. Music
-
-    Url: https://www.enls.eu/prelooped/

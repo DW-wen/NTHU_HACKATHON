@@ -17,7 +17,8 @@ Example for rendering other players
 
 ![Alt Text](./Checkpoint3_gif/chat.gif)
 
-- [x] (1 point) Chat Mechanism implemented (chat_overlay.py + integration with OnlineManager).
+- [ ] (1 point) Chat Mechanism. Implement a chat system for the online version.
+(HINT: We've added a chat_overlay.py and some additional comments in game_scene.py)
 
 **Guide to Run Online:**
 
