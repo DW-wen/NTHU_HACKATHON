@@ -51,8 +51,8 @@ class SceneManager:
             
     def draw(self, screen: pg.Surface) -> None:
     # 若是在 Setting Scene => 先畫上一個場景，再畫 SettingScene
-    
-        if (type(self._current_scene).__name__ in ("SettingScene", "BackpackScene")) and self._previous_scene:
+
+        if (type(self._current_scene).__name__ in ("SettingScene", "BackpackScene", "ShopScene")) and self._previous_scene:
             self._previous_scene.draw(screen)
             self._current_scene.draw(screen)
         else:
@@ -81,7 +81,7 @@ class SceneManager:
     
     def close_overlay(self):
         """關閉 SettingScene 浮層，回到 previous_scene"""
-        if (type(self._current_scene).__name__ in ("SettingScene", "BackpackScene")) and self._previous_scene:
+        if (type(self._current_scene).__name__ in ("SettingScene", "BackpackScene", "ShopScene")) and self._previous_scene:
             Logger.info("Closing overlay SettingScene")
             self._current_scene.exit()
             self._current_scene = self._previous_scene

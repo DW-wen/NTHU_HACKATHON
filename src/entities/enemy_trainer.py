@@ -14,6 +14,7 @@ from src.utils import GameSettings, Direction, Position, PositionCamera
 
 class EnemyTrainerClassification(Enum):
     STATIONARY = "stationary"
+    SHOPKEEPER = "shopkeeper"
 
 @dataclass
 class IdleMovement:
@@ -41,7 +42,7 @@ class EnemyTrainer(Entity):
         super().__init__(x, y, game_manager)
         self.classification = classification
         self.max_tiles = max_tiles
-        if classification == EnemyTrainerClassification.STATIONARY:
+        if classification in (EnemyTrainerClassification.STATIONARY, EnemyTrainerClassification.SHOPKEEPER):
             self._movement = IdleMovement()
             if facing is None:
                 raise ValueError("Idle EnemyTrainer requires a 'facing' Direction at instantiation")
@@ -57,8 +58,10 @@ class EnemyTrainer(Entity):
         self._movement.update(self, dt)
         self._has_los_to_player()
         if self.detected and input_manager.key_pressed(pygame.K_SPACE):
-            scene_manager.change_scene("battle")
-            pass
+            if self.classification == EnemyTrainerClassification.SHOPKEEPER:
+                scene_manager.change_scene("shop")
+            else:
+                scene_manager.change_scene("battle")
         self.animation.update_pos(self.position)
 
     @override

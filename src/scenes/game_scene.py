@@ -110,6 +110,21 @@ class GameScene(Scene):
             
         return False
     
+    def check_special_map_interaction(self) -> bool:
+        # 1. 檢查當前地圖是否為 gym.tmx
+        if self.game_manager.current_map_key != "gym.tmx":
+            return False
+
+        from src.core.services import input_manager
+        
+        # 2. 檢查是否按下了互動鍵 (假設購買鍵是 U)
+        if not input_manager.key_down(pg.K_u):
+            return False
+            
+        Logger.info("Hi")
+            
+        return False
+    
     @override
     def enter(self) -> None:
         sound_manager.play_bgm("RBY 103 Pallet Town.ogg")
@@ -150,6 +165,10 @@ class GameScene(Scene):
         # Update player and other data
         if self.game_manager.player:
             self.game_manager.player.update(dt)
+            
+            if self.check_special_map_interaction():
+                return
+            
             
             # 💥 NEW: 只有當延遲結束時，才檢查草叢戰鬥遭遇
             if self._enter_delay_timer <= 0:

@@ -32,6 +32,9 @@ class Map:
     def update(self, dt: float):
         return
     
+
+    # 假設 pytmx 已經被導入
+
     def get_layer_by_name(self, layer_name: str) -> list[int] | None:
         """
         根據圖層名稱從 TMX 數據中獲取該圖層的扁平化圖塊 GID 列表。
@@ -42,52 +45,34 @@ class Map:
         Returns:
             list[int] | None: 如果找到，則返回 GID 列表；否則返回 None。
         """
-        # 1. 透過名稱獲取 pytmx.TiledTileLayer 物件
-        layer = self.tmxdata.get_layer_by_name(layer_name)
-        
-        if layer is None or not isinstance(layer, pytmx.TiledTileLayer):
+        try:
+            # 1. 透過名稱獲取 pytmx.TiledLayer 物件
+            layer = self.tmxdata.get_layer_by_name(layer_name)
+        except ValueError:
+            # 解決 Layer not found 的錯誤 (例如 "PokemonBush" 不存在時)
+            # 這是您程式碼最需要修改的地方。
+            # print(f"Layer '{layer_name}' not found in map data.") # 使用 Logger.info/warning 更好
             return None
-        
-        # 2. 從 TiledTileLayer 迭代器中提取 GID 並展平
-        # TiledTileLayer 迭代器產生 (x, y, GID)
-        # 我們只需要 GID，並且以行優先 (Row-major) 的順序收集它們。
-        
-        # 創建一個長度為 W*H 的列表，並初始化為 0
-        map_width = self.tmxdata.width
-        map_height = self.tmxdata.height
-        
-        # 使用列表生成式來確保順序正確 (從 tmxdata 獲取 GID 列表)
-        # 注意: pytmx 提供的迭代器已經是行優先的
-        
-        # 獲取所有 (x, y, GID) 三元組
-        gids: list[int] = [
-            gid 
-            for x, y, gid in layer.tiles()
-        ]
 
-        # 檢查尺寸是否正確 (W*H)
-        if len(gids) != map_width * map_height:
-             # 如果 TMX 格式不預期所有單元格都有 (x, y, GID) 數據，需要更嚴謹的填充
-             # 但通常 for layer.tiles() 會返回所有單元格
-             # 為了兼容性，我們可以使用 get_tile_gid(x, y) 逐一查詢
-             
-             # 更安全的做法 (逐一查詢 GID)：
-             gids_safe: list[int] = []
-             for y in range(map_height):
-                 for x in range(map_width):
-                     # pytmx.get_tile_gid(x, y, layer_index) 是最可靠的獲取方式
-                     # 但由於我們已經有了 layer 物件，我們使用 layer.data 屬性 (它是一個二維陣列)
-                     # 為了返回扁平化陣列，我們手動從 layer.data 構造:
-                     try:
-                         # 假設 layer.data 是一個二維列表 [y][x]
-                         gids_safe.append(layer.data[y][x])
-                     except:
-                         # 處理 layer.data 不存在或格式不正確的情況
-                         return gids # 嘗試返回迭代器獲取的 GIDs (如果存在)
-             
-             return gids_safe # 返回安全構造的扁平化列表
+        # 2. 檢查圖層類型：必須是 TiledTileLayer 才能有圖塊 GID 數據
+        if not isinstance(layer, pytmx.TiledTileLayer):
+            # print(f"Layer '{layer_name}' found, but it is not a Tile Layer.")
+            return None
+
+        # 3. 從 TiledTileLayer 的 .data 屬性中高效獲取 GID 並展平
+        # layer.data 是一個二維列表 (Row-major: [y][x])，包含所有 GID (包括 0)
         
-        # 如果迭代器工作正常，直接返回：
+        gids: list[int] = []
+        # 逐行迭代並將其展平 (flatten)
+        for row in layer.data:
+            gids.extend(row)
+            
+        # 檢查尺寸是否正確 (這通常是多餘的，因為 layer.data 已經保證尺寸為 W*H)
+        map_size = self.tmxdata.width * self.tmxdata.height
+        if len(gids) != map_size:
+            # 雖然不應該發生，但如果發生則發出警告
+            print(f"Warning: Flattened GID list size ({len(gids)}) does not match expected map size ({map_size}).")
+            
         return gids
 
     def draw(self, screen: pg.Surface, camera: PositionCamera):

@@ -6,8 +6,10 @@ from src.scenes.backpack_scene import BackpackScene
 from src.scenes.battle_scene import BattleScene
 from src.scenes.catch_scene import CatchScene
 from src.scenes.setting_scene import SettingScene
+from src.scenes.shop_scene.shop_scene import ShopScene
 from src.utils import GameSettings, Logger
 from .services import scene_manager, input_manager
+
 
 from src.scenes.menu_scene import MenuScene
 from src.scenes.game_scene import GameScene
@@ -64,7 +66,7 @@ class Engine:
         scene_manager.register_scene("backpack", BackpackScene(gm))
         scene_manager.register_scene("battle", BattleScene(gm))
         scene_manager.register_scene("catch", CatchScene(gm))
-        
+        scene_manager.register_scene("shop", ShopScene(gm))
         '''
         [TODO HACKATHON 5]
         Register the setting scene here
