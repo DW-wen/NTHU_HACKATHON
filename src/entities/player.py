@@ -14,6 +14,7 @@ class Player(Entity):
     game_manager: GameManager
     
     is_moving: bool = False
+    auto_move_path: list | None = None
 
     def __init__(self, x: float, y: float, game_manager: GameManager) -> None:
         super().__init__(x, y, game_manager)
@@ -24,7 +25,37 @@ class Player(Entity):
     
     @override
     def update(self, dt: float) -> None:
+        from src.utils import Position
         dis = Position(0, 0)
+
+        # Auto-move override: if a path is set, we drive the player along waypoints
+        if getattr(self, 'auto_move_path', None):
+            target = self.auto_move_path[0]
+            vec_x = target.x - self.position.x
+            vec_y = target.y - self.position.y
+            dist_to_target = (vec_x ** 2 + vec_y ** 2) ** 0.5
+            # consider reached if within movement step or small tolerance
+            # use dt-aware threshold if possible; fallback to 2 px
+            threshold = max(self.speed * 0.016, 2)  # assume 60fps ~ 16ms for threshold fallback
+            if dist_to_target <= threshold:
+                # snap exactly to waypoint to avoid offset accumulation
+                self.position = type(self.position)(target.x, target.y)
+                self.auto_move_path.pop(0)
+                if len(self.auto_move_path) == 0:
+                    self.auto_move_path = None
+                    self.is_moving = False
+                else:
+                    # still more waypoints; continue next tick
+                    self.is_moving = True
+                # update animation rect position immediately
+                self.animation.update_pos(self.position)
+                return
+
+            # set movement direction towards target
+            length = dist_to_target
+            if length > 0:
+                dis.x = (vec_x / length)
+                dis.y = (vec_y / length)
         if input_manager.key_down(pg.K_LEFT) or input_manager.key_down(pg.K_a):
             dis.x -= 1
             
@@ -89,6 +120,13 @@ class Player(Entity):
             self.game_manager.switch_map(dest)
                 
         super().update(dt)
+
+    def set_auto_move(self, waypoints: list) -> None:
+        """Set a list of Position waypoints (pixel coordinates) for automatic movement."""
+        self.auto_move_path = waypoints.copy() if waypoints else None
+
+    def clear_auto_move(self) -> None:
+        self.auto_move_path = None
 
     @override
     def draw(self, screen: pg.Surface, camera: PositionCamera) -> None:

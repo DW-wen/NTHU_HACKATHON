@@ -82,6 +82,156 @@ class GameManager:
                 return True
         
         return False
+
+    def find_path_bfs(self, start_tile: tuple[int, int], goal_tile: tuple[int, int]) -> list[tuple[int, int]] | None:
+        """Simple BFS pathfinding on tile grid. Returns list of tile coords from start to goal (inclusive).
+        Uses collision rectangles from Map._collision_map to determine walkability.
+        """
+        from collections import deque
+        map_obj = self.current_map
+        width = map_obj.tmxdata.width
+        height = map_obj.tmxdata.height
+
+        def in_bounds(x, y):
+            return 0 <= x < width and 0 <= y < height
+
+        def is_blocked(x, y):
+            # teleporter tile itself is walkable (allow entering buildings)
+            for tp in map_obj.teleporters:
+                tx = int(tp.pos.x) // GameSettings.TILE_SIZE
+                ty = int(tp.pos.y) // GameSettings.TILE_SIZE
+                if tx == x and ty == y:
+                    return False
+            # Block tiles that are adjacent (Manhattan distance 1) to teleporters
+            for tp in map_obj.teleporters:
+                tx = int(tp.pos.x) // GameSettings.TILE_SIZE
+                ty = int(tp.pos.y) // GameSettings.TILE_SIZE
+                if abs(tx - x) + abs(ty - y) == 1:
+                    return True
+            # tile rect in pixels
+            tile_rect = pg.Rect(x * GameSettings.TILE_SIZE, y * GameSettings.TILE_SIZE, GameSettings.TILE_SIZE, GameSettings.TILE_SIZE)
+            # Static collisions from the map
+            for r in map_obj._collision_map:
+                if r.colliderect(tile_rect):
+                    return True
+            # Dynamic collisions: treat enemy trainers as blocked so pathfinding routes around them
+            for entity in self.enemy_trainers.get(self.current_map_key, []):
+                if tile_rect.colliderect(entity.animation.rect):
+                    return True
+            return False
+
+        sx, sy = start_tile
+        gx, gy = goal_tile
+        if not in_bounds(sx, sy) or not in_bounds(gx, gy):
+            return None
+        # If goal tile is blocked, attempt to find the nearest unblocked tile around it
+        if is_blocked(gx, gy):
+            fallback = None
+            # BFS outward from goal to find nearest unblocked tile
+            from collections import deque
+            dq = deque()
+            dq.append((gx, gy, 0))
+            visited = { (gx, gy) }
+            max_radius = max(width, height)  # allow full map search if needed
+            while dq:
+                x, y, dist = dq.popleft()
+                if not is_blocked(x, y):
+                    fallback = (x, y)
+                    break
+                if dist >= max_radius:
+                    continue
+                for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):
+                    nx, ny = x+dx, y+dy
+                    if not in_bounds(nx, ny):
+                        continue
+                    if (nx, ny) in visited:
+                        continue
+                    visited.add((nx, ny))
+                    dq.append((nx, ny, dist+1))
+            if fallback is None:
+                return None
+            else:
+                gx, gy = fallback
+
+        q = deque()
+        q.append((sx, sy))
+        came_from = { (sx, sy): None }
+
+        while q:
+            x, y = q.popleft()
+            if (x, y) == (gx, gy):
+                # reconstruct path
+                path = []
+                cur = (x, y)
+                while cur is not None:
+                    path.append(cur)
+                    cur = came_from[cur]
+                path.reverse()
+                return path
+
+            for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):
+                nx, ny = x+dx, y+dy
+                if not in_bounds(nx, ny):
+                    continue
+                if (nx, ny) in came_from:
+                    continue
+                if is_blocked(nx, ny):
+                    continue
+                came_from[(nx, ny)] = (x, y)
+                q.append((nx, ny))
+
+        # No path to the goal was found. As a fallback, pick the reachable tile
+        # that is closest (Manhattan distance) to the original requested goal
+        # (before any goal fallback adjustment). This allows navigation to the
+        # nearest reachable point when the target area is enclosed.
+        # Use the original requested goal (passed in as goal_tile)
+        orig_goal = goal_tile
+        best_tile = None
+        best_dist = None
+        for t in came_from.keys():
+            if t == (sx, sy):
+                continue
+            dist = abs(t[0] - orig_goal[0]) + abs(t[1] - orig_goal[1])
+            if best_dist is None or dist < best_dist:
+                best_tile = t
+                best_dist = dist
+
+        if best_tile is None:
+            return None
+
+        # reconstruct path to best_tile
+        path = []
+        cur = best_tile
+        while cur is not None:
+            path.append(cur)
+            cur = came_from[cur]
+        path.reverse()
+        return path
+
+    def auto_move_player_to(self, tile_x: int, tile_y: int) -> bool:
+        """Compute tile path and set player's auto_move_path to follow it. Returns True if path found."""
+        if not self.player:
+            return False
+        start_tile = (int(self.player.position.x // GameSettings.TILE_SIZE), int(self.player.position.y // GameSettings.TILE_SIZE))
+        goal_tile = (tile_x, tile_y)
+        path = self.find_path_bfs(start_tile, goal_tile)
+        if path is None:
+            return False
+
+        # If path ends on a tile that is effectively the original goal's neighbor
+        # that's acceptable. Otherwise, path will lead to the fallback chosen by find_path_bfs.
+
+        # Convert tile coords to pixel-aligned top-left positions (matches Player.position anchor)
+        waypoints = []
+        for tx, ty in path[1:]:  # skip first (current tile)
+            px = tx * GameSettings.TILE_SIZE
+            py = ty * GameSettings.TILE_SIZE
+            from src.utils import Position
+            waypoints.append(Position(px, py))
+
+        # set player's auto move path
+        self.player.set_auto_move(waypoints)
+        return True
         
     def save(self, path: str) -> None:
         try:

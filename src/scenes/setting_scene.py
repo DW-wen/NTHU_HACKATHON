@@ -125,6 +125,8 @@ class SettingScene(Scene):
         hover_img_flipped  = pg.transform.flip(hover_img, True, False) 
         
         px, py = GameSettings.SCREEN_WIDTH // 2, GameSettings.SCREEN_HEIGHT * 3 // 4
+        # Store as instance attributes so other methods can access them (e.g., draw)
+        self.px, self.py = px, py
         self.back_button = Button(
             normal_img_flipped, hover_img_flipped,
             # "UI/raw/UI_Flat_IconPlay01a.png", "UI/raw/UI_Flat_IconPlay01a.png",
@@ -150,6 +152,18 @@ class SettingScene(Scene):
             # (0.5) Call the handle_load method
             lambda: self.handle_load(SAVE_PATH)
         )
+
+        # Navigation button: auto-move to specified map coordinate
+        # Using save button img assets for icon consistency
+        self.nav_img = pg.image.load("assets/images/ingame_ui/baricon1.png")
+        self.nav_img_hover = pg.image.load("assets/images/ingame_ui/baricon1.png")
+        self.nav_button = Button(
+            self.nav_img, self.nav_img_hover,
+            px - 210, py + 20, *button_size,
+            lambda: self.handle_navigate()
+        )
+        self.nav_status_font = pg.font.SysFont('inkfree', 24)
+        self.nav_status_text = self.nav_status_font.render('', True, (255,255,255))
         
         # close button
         # ... (Close Button 相關的初始化程式碼)
@@ -278,6 +292,7 @@ class SettingScene(Scene):
         self.save_button.update(dt)
         self.load_button.update(dt)
         self.close_button.update(dt)
+        self.nav_button.update(dt)
 
     @override
     def draw(self, screen: pg.Surface) -> None:
@@ -311,5 +326,23 @@ class SettingScene(Scene):
         
         self.save_button.draw(screen)
         self.load_button.draw(screen)
+        self.nav_button.draw(screen)
+        
         self.back_button.draw(screen)
         self.close_button.draw(screen)
+
+    def handle_navigate(self):
+        """Triggered by nav button: start auto-moving player to map.tmx {x:16,y:30}."""
+        # NOTE: target map/key assumed to be "map.tmx", if different, you may need to switch maps first
+        target_map = "map.tmx"
+        target_tile = (16, 30)
+        # If player is on a different map, switch map first then set auto-move after switching
+        if self.game_manager.current_map_key != target_map:
+            # schedule switch and then auto-move on next tick by setting player position to spawn and returning
+            self.game_manager.switch_map(target_map)
+            # after switch, auto move will be attempted in enter or update; for simplicity, set nav_status
+            self.nav_status_text = self.nav_status_font.render('Switched map. Press nav again.', True, (255,255,255))
+            return
+
+        ok = self.game_manager.auto_move_player_to(*target_tile)
+        
